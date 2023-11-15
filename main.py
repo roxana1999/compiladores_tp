@@ -2,17 +2,23 @@
 import sys
 from gramatica import Gramatica
 
-terminales = ['0','1']
-no_terminales = ['S']
-gramatica = Gramatica(terminales, no_terminales)
-e1 = ['0', 'S', '1']
-e2 = ['0', '1']
-e3 = ['1', '0']
-e4 = ['epsilon']
-lista_producciones = [e1, e2, e3, e4]
-gramatica.agregar_producciones('S', lista_producciones)
-gramatica.generar()
-gramatica.imprimir_tabla_afn()
+def ejemplo_1():
+    terminales = ['0','1']
+    no_terminales = ['S']
+    gramatica = Gramatica(terminales, no_terminales)
+    e1 = ['0', 'S', '1']
+    e2 = ['0', '1']
+    e3 = ['1', '0']
+    e4 = ['epsilon']
+    lista_producciones = [e1, e2, e3, e4]
+    #* La siguiente instrucción se realiza para cada no terminal
+    gramatica.agregar_producciones('S', lista_producciones)
+
+    return gramatica    
+
+gramatica_seleccionada = ejemplo_1()
+gramatica_seleccionada.generar()
+gramatica_seleccionada.imprimir_tabla_afn()
 print 'im done'
 
 #tabla_transiciones = [['','0','1', 'epsilon'], [0, [], [], []]];
