@@ -1,10 +1,12 @@
 # -*- coding: utf-8 -*-
 NRO_MAXIMO_DE_RECURSIONES = 1
+NRO_MAXIMO_DE_RECURSIONES_INDIRECTAS = 1 
 class Gramatica:
-    def __init__(self, terminales, no_terminales):
+    def __init__(self, terminales, no_terminales, simbolo_inicial):
         self.terminales = terminales
         self.no_terminales = no_terminales
         self.gramatica = {}
+        self.simbolo_inicial = simbolo_inicial
     
     def agregar_producciones(self, no_terminal, lista_producciones):
         self.gramatica[no_terminal] = lista_producciones
@@ -27,7 +29,7 @@ class Gramatica:
         nueva_fila.append([]) # para la transicion epsilon
         return nueva_fila
 
-    def generar_tabla_transiciones(self, estado_inicial, no_terminal, recursiones_restantes):
+    def generar_tabla_transiciones(self, estado_inicial, no_terminal, recursiones_restantes, recursiones_indirectas_restantes, simbolos_predecesores):
         estados_finales = []
         print "Simbolo no terminal: " + no_terminal
         lista_producciones = self.gramatica[no_terminal]
@@ -64,15 +66,16 @@ class Gramatica:
                         self.tabla_transiciones['filas'].append(nueva_fila)
                         estado_actual = estado_siguiente
                         if char != no_terminal:
-                            estado_actual = self.generar_tabla_transiciones(estado_actual, char, NRO_MAXIMO_DE_RECURSIONES)
+                            estado_actual = self.generar_tabla_transiciones(estado_actual, char, NRO_MAXIMO_DE_RECURSIONES, NRO_MAXIMO_DE_RECURSIONES_INDIRECTAS, simbolos_predecesores)
                         else: 
                             print "----> cumple la condicion de recursion al inicio o en medio de la produccion"
                             #* char es sigual al símbolo no terminal, hacer recursión
                             if recursiones_restantes > 0:
                                 print "----> Nueva fila agregada a la tabla: ",
                                 print self.tabla_transiciones['filas'][estado_actual]
-                                print "----> Llamar a recursion"
-                                estado_actual = self.generar_tabla_transiciones(estado_actual, char, recursiones_restantes - 1)
+                                print "----> Llamar a recursion para " + no_terminal + "con recursiones restantes = " + str(recursiones_restantes)
+                                estado_actual = self.generar_tabla_transiciones(estado_actual, char, recursiones_restantes - 1, NRO_MAXIMO_DE_RECURSIONES_INDIRECTAS, simbolos_predecesores)
+                                print "----> Fin de llamado a recursion para " + no_terminal + "con recursiones restantes = " + str(recursiones_restantes)
                             else:
                                 #* Se llegó al límite de recursiones
                                 print "----> Se llego al limite de recursiones"                            
@@ -95,11 +98,11 @@ class Gramatica:
         return estado_actual
 
     def generar(self):
-        for key, value in self.gramatica.items():
-            estado_inicial = 0
-            #print "la clave es " + key
-            self.generar_tabla_transiciones(estado_inicial, key, NRO_MAXIMO_DE_RECURSIONES)
-            break
+        estado_inicial = 0
+        simbolos_predecesores= {}
+        #print "la clave es " + key
+        self.generar_tabla_transiciones(estado_inicial, self.simbolo_inicial, NRO_MAXIMO_DE_RECURSIONES, NRO_MAXIMO_DE_RECURSIONES_INDIRECTAS, simbolos_predecesores)
+        
     
     def imprimir_tabla_afn(self):
         print "\n\n--------------------TABLA AFN-------------------"
