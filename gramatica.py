@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-NRO_MAXIMO_DE_RECURSIONES = 1
+NRO_MAXIMO_DE_RECURSIONES = 3
 NRO_MAXIMO_DE_RECURSIONES_INDIRECTAS = 1 
 class Gramatica:
     def __init__(self, terminales, no_terminales, simbolo_inicial):
@@ -11,6 +11,7 @@ class Gramatica:
     def agregar_producciones(self, no_terminal, lista_producciones):
         self.gramatica[no_terminal] = lista_producciones
         self.tabla_transiciones = {}
+        self.tabla_afd = {}
         header = ['']
         fila = [0]
         for c in self.terminales:
@@ -20,6 +21,14 @@ class Gramatica:
         fila.append([])
         self.tabla_transiciones['cabecera'] = header
         self.tabla_transiciones['filas'] = [fila]
+
+        header = ['']
+        fila = [[0]]
+        for c in self.terminales:
+            header.append(c)
+            fila.append([])
+        self.tabla_afd['cabecera'] = header
+        self.tabla_afd['filas'] = [fila]
     
     def crear_nueva_fila(self, estado_siguiente):
         nueva_fila = []
@@ -115,3 +124,71 @@ class Gramatica:
             for item in fila:
                 print("{:^{}}".format(str(item), 10)+"|"),
             print "\n------------------------------------------------"
+    
+    # def generar_afd(self):
+    #     Destados = [self.cerradura_e(0)] #Inicializar Destados con c-e(0)
+    #     hay_estados_sin_marcar = True
+
+    #     while hay_estados_sin_marcar:
+    #         for i, item in enumerate(Destados):
+    #             print ("i es", i)
+    #             if item["marcado"] == "no":
+    #                 item["marcado"] = "si" # marcar T
+    #                 for char in self.terminales:
+    #                     cerradura_e = []
+    #                     lista_mover = self.mover(item["cerradura"], char)
+    #                     for estado in lista_mover:
+    #                         cerradura_para_estado = self.cerradura_e(estado)
+    #                         for c in cerradura_para_estado:
+    #                             if c not in cerradura_e:
+    #                                 cerradura_e.append(c)
+    #                     cerradura_e.sort()
+    #                     if !self.cerradura_e_ya_existe(cerradura_e, Destados):
+    #                         posicion_char = self.terminales.index(char)+1
+    #                         index_de_mi_simbolo_padre = self.tabla_afd['filas']
+
+    #                         nueva_fila = []
+    #                         nueva_fila.append(cerradura_e)
+    #                         for t in self.terminales:
+    #                             nueva_fila.append([])
+    #                         self.tabla_afd['filas'].append(nueva_fila)
+    #                         Destados.append({"cerradura": cerradura_e, "marcado": "no"})
+    #                         # es nueva cerradura y debo añadir nueva fila           
+
+
+    def cerradura_e_ya_existe(self, cerradura_e, Destados):
+        for item in Destados:
+            if item["cerradura"] == cerradura_e:
+                return True
+        return False
+    
+    def mover(self, cerradura, char):
+        print "-> Mover " + str(cerradura) + " con char " + char 
+        lista_mover = []
+        for estado in cerradura:
+            estados_accesibles_con_char = self.tabla_transiciones['filas'][estado][self.terminales.index(char)+1]
+            for e in estados_accesibles_con_char:
+                if e not in lista_mover:
+                    lista_mover.append(e)
+        return lista_mover.sort()
+
+    def cerradura_e(self, estado):
+        cerradura_e = {"cerradura": [estado], "marcado": "no"}
+        estados_desde_e = self.obtener_estados_desde_e(estado)
+        self.agregar_estados(estados_desde_e, cerradura_e)
+        print "cerradura_e para el estado "+str(estado)+": "+str(cerradura_e)
+        cerradura_e["cerradura"].sort()
+        print "cerradura_e ordenada: " + str(cerradura_e["cerradura"])
+        return cerradura_e
+    
+    def obtener_estados_desde_e(self, estado):
+        fila = self.tabla_transiciones['filas'][estado]
+        columna_e = len(self.terminales)+1
+        return fila[columna_e]
+
+    def agregar_estados(self, estados_desde_e, cerradura_e):
+        for estado in estados_desde_e:
+            if estado not in cerradura_e["cerradura"]:
+                cerradura_e["cerradura"].append(estado)
+                estados_desde_e = self.obtener_estados_desde_e(estado)
+                self.agregar_estados(estados_desde_e, cerradura_e)
